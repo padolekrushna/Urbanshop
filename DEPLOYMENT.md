@@ -1,5 +1,56 @@
 # Urbanshop Deployment Guide
 
+## Keep Backend Awake (Render Free Tier)
+
+Render's free tier puts your backend to sleep after 15 minutes of inactivity. To keep it active:
+
+**1.** Sign up for [UptimeRobot](https://uptimerobot.com) (free)
+
+**2.** Click **"Add New Monitor"**
+
+**3.** Set:
+
+| Field | Value |
+|-------|-------|
+| **Monitor Type** | HTTP(s) |
+| **Friendly Name** | Urbanshop Backend |
+| **URL** | `https://urbanshop-backend.onrender.com/api/ping` |
+| **Monitoring Interval** | 5 minutes |
+
+**4.** Click **"Create Monitor"**
+
+UptimeRobot will ping your backend every 5 minutes, keeping it awake 24/7.
+
+Your backend also has a `/api/ping` endpoint — this is what UptimeRobot monitors.
+
+---
+
+## Use Admin Panel (No Code Changes Needed)
+
+The admin panel already works with your existing code. No changes needed in the UI.
+
+**Steps to access Admin:**
+
+**1.** Go to your deployed frontend URL (e.g., `https://urbanshop-frontend.onrender.com`)
+
+**2.** Go to `/auth.html` and **Sign Up** with your email and password
+
+**3.** Go to [Supabase Dashboard](https://app.supabase.com) → **SQL Editor**
+
+**4.** Run this SQL (replace with your email):
+
+```sql
+UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
+```
+
+**5.** Sign out from your app, then **Sign Back In**
+
+**6.** Visit `/admin.html` — you now have admin access!
+
+**To revoke admin:** Run the same SQL but set `role = 'user'`
+
+---
+
 ## Deploy to Render (Recommended - Free)
 
 Render supports both frontend (static) and backend (Python) in one project.

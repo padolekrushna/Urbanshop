@@ -13,6 +13,8 @@ class Event(BaseModel):
     user_id:str|None=None
 @app.get("/api/health")
 def health(): return {"status":"ok","service":"urbanshop"}
+@app.get("/api/ping")
+def ping(): return {"status":"alive","timestamp":datetime.now(timezone.utc).isoformat()}
 @app.get("/api/products")
 def products(): return {"items":[{"id":1,"title":"Oversized Black T-Shirt","category":"T-Shirts","price":799,"location":"Pune"},{"id":2,"title":"Premium White Shirt","category":"Shirts","price":1299,"location":"Mumbai"},{"id":3,"title":"Relaxed Fit Blue Jeans","category":"Jeans","price":1799,"location":"Delhi"}]}
 @app.post("/api/analytics/event")
