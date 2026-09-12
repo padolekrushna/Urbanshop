@@ -26,4 +26,5 @@ def analytics(): return {"total_events":len(events),"page_views":sum(e["event_ty
 if __name__=="__main__":
     import uvicorn
     port=int(os.environ.get("PORT",8000))
-    uvicorn.run("backend.main:app",host="0.0.0.0",port=port)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    uvicorn.run("main:app",host="0.0.0.0",port=port)
