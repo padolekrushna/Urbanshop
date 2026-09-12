@@ -1,91 +1,57 @@
 # Urbanshop Deployment Guide
 
-## Deploy to Vercel (Frontend)
+## Deploy to Render (Recommended - Free)
 
-### Prerequisites
-1. Create a GitHub repository and push this project
-2. Create a Vercel account at [vercel.com](https://vercel.com)
-3. Import your repository into Vercel
+Render supports both frontend (static) and backend (Python) in one project.
 
-### Frontend Deployment on Vercel
+### Quick Deploy
 
-Vercel natively serves static HTML/CSS/JS files. The frontend is configured to deploy directly.
+**1.** Go to [render.com](https://render.com) → Sign up with GitHub
 
-**Important**: Vercel does not natively support Python backends. You have two options:
+**2.** Click **"New"** → **"Import repo"**
 
-#### Option A: Frontend on Vercel + Backend on Railway/Render (Recommended)
+**3.** Select your `padolekrushna/Urbanshop` repo
 
-1. **Deploy Backend separately** on [Railway](https://railway.app) or [Render](https://render.com):
-   - Connect your backend folder or repo
-   - Set build command: `pip install -r requirements.txt`
-   - Set start command: `python backend/main.py`
-   - Note the deployed URL (e.g., `https://urbanshop-api.onrender.com`)
+**4.** Render auto-detects `render.yaml` and creates both services:
 
-2. **Deploy Frontend on Vercel**:
-   - In Vercel dashboard, import your repo
-   - Add environment variables in Vercel project settings:
-     ```
-     VITE_API_URL = https://your-backend-url.com/api
-     VITE_SUPABASE_URL = your-supabase-url
-     VITE_SUPABASE_ANON_KEY = your-anon-key
-     ```
-   - Deploy!
+| Service | Type | URL |
+|---------|------|-----|
+| `urbanshop-backend` | Web (Python) | `https://urbanshop-backend.onrender.com` |
+| `urbanshop-frontend` | Static Site | `https://urbanshop-frontend.onrender.com` |
 
-3. **Update `frontend/config.js`** to use relative paths or the deployed backend URL
+**5.** Go to `urbanshop-frontend` → **Settings** → **Environment Variables**:
 
-#### Option B: Everything via Vercel (Static Only)
+| Name | Value |
+|------|-------|
+| `VITE_API_URL` | `https://urbanshop-backend.onrender.com/api` |
+| `VITE_SUPABASE_URL` | Your Supabase URL |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase Key |
 
-If using only the local API mode (no Supabase, mock backend):
+**6.** Click **"Save Changes"** — auto-redeploys with new env vars
 
-1. Import repo into Vercel
-2. The `vercel.json` routes will serve the static frontend
-3. The backend API calls will fail unless you also deploy the backend
+**7.** Done! Your app is live at `https://urbanshop-frontend.onrender.com`
 
-### Vercel Environment Variables
+---
 
-Set these in your Vercel project dashboard under **Settings > Environment Variables**:
+## Manual Deploy (Backend Only)
 
-| Name | Description | Example |
-|------|-------------|---------|
-| `VITE_API_URL` | Your backend API URL | `https://urbanshop-api.onrender.com/api` |
-| `VITE_SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | `sb_publishable_...` |
+If you prefer to deploy backend separately:
 
-### Quick Deploy Commands
+### Backend on Render
+1. **New** → **"Web Service"**
+2. Connect repo
+3. **Build Command**: `pip install -r backend/requirements.txt`
+4. **Start Command**: `python backend/main.py`
+5. Set env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`
+6. Creates URL like `https://urbanshop-xxxx.onrender.com`
 
-```bash
-# Install Vercel CLI
-npm install -g vercel
+### Frontend on Render Static
+1. **New** → **"Static Site"**
+2. Connect repo
+3. **Publish Directory**: `frontend`
+4. Set `VITE_API_URL` to your backend URL
 
-# Deploy from project root
-cd Urbanshop_FullStack
-vercel --prod
-```
-
-## Deploy Backend (Python/FastAPI)
-
-### Option 1: Railway.app (Free Tier)
-1. Create a `Procfile` in project root:
-   ```
-   web: python backend/main.py
-   ```
-2. Connect Railway to your GitHub repo
-3. Set environment variables:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `JWT_SECRET`
-
-### Option 2: Render.com
-1. Create a new Web Service
-2. Connect your repo
-3. Build command: `pip install -r backend/requirements.txt`
-4. Start command: `python backend/main.py`
-
-### Option 3: Fly.io
-```bash
-fly launch
-fly deploy
-```
+---
 
 ## Database (Supabase)
 
@@ -94,27 +60,16 @@ fly deploy
 3. Update `frontend/config.js` with your credentials
 4. Register a user, then in SQL Editor:
    ```sql
-   UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
+   UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
    ```
 
-## Project Structure for Deployment
+---
 
-```
-urbanshop/
-├── frontend/          # Served by Vercel (static)
-│   ├── index.html
-│   ├── auth.html
-│   ├── admin.html
-│   ├── product.html
-│   ├── styles.css
-│   ├── app.js
-│   └── config.js
-├── backend/           # Deployed separately (Railway/Render)
-│   ├── main.py
-│   ├── requirements.txt
-│   └── .env.example
-├── supabase/
-│   └── schema.sql
-├── vercel.json        # Vercel config for frontend
-└── package.json
-```
+## Backend API URL
+
+After deploying backend, update `render.yaml` or set manually:
+
+| Service | VITE_API_URL |
+|---------|-------------|
+| Both on Render | `https://urbanshop-backend.onrender.com/api` |
+| Backend on Railway | `https://web-production-5e30a.up.railway.app/api` |

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime,timezone
 from collections import Counter
+import os
 app=FastAPI(title="Urbanshop API",version="1.0.0")
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
 events=[]
@@ -21,4 +22,6 @@ def analytics_event(event:Event):
 @app.get("/api/admin/analytics")
 def analytics(): return {"total_events":len(events),"page_views":sum(e["event_type"] in ("page_view","product_view") for e in events),"reseller_clicks":sum(e["event_type"]=="reseller_click" for e in events),"by_product":dict(Counter(str(e["product_id"]) for e in events if e["product_id"] is not None))}
 if __name__=="__main__":
- import uvicorn;uvicorn.run("main:app",host="0.0.0.0",port=8000,reload=True)
+    import uvicorn
+    port=int(os.environ.get("PORT",8000))
+    uvicorn.run("backend.main:app",host="0.0.0.0",port=port)

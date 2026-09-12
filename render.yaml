@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: urbanshop-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/main.py
+    envVars:
+      - key: PORT
+        value: 8000
+
+  - type: static
+    name: urbanshop-frontend
+    plan: free
+    buildCommand: ""
+    publishDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        sync: false
