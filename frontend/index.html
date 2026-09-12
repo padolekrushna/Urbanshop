@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urbanshop - Professional Storefront</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header id="main-header">
+        <a href="index.html" class="logo">urban<span>shop</span></a>
+        <div class="nav-actions">
+            <a href="#" class="icon-btn" onclick="window.location.href='index.html'; return false;">
+                ♡ <b id="wishlist-count">0</b>
+            </a>
+            <a href="admin.html" id="admin-link" class="admin-link" style="display: none;">Admin</a>
+            <a href="auth.html" id="account-link">Account</a>
+        </div>
+    </header>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="#" onclick="filterCategory(''); return false;">Shop</a>
+        <a href="#">Today's Deals</a>
+        <a href="#">Customer Service</a>
+        <a href="#">Registry</a>
+        <a href="#">Gift Cards</a>
+        <a href="#">Sell</a>
+    </nav>
+
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+        <h1>Welcome to Urbanshop</h1>
+        <p>Discover the latest trends in fashion, electronics, and more. Quality products at unbeatable prices, delivered to your doorstep.</p>
+        <a href="#products" class="hero-btn">Explore Now</a>
+    </section>
+
+    <!-- Ad Panel -->
+    <div class="ad-panel" id="ad-panel">
+        <h2>Big Savings on Top Brands!</h2>
+        <p>Get up to 50% off on premium fashion and accessories. Limited time offer.</p>
+        <a href="#products" class="btn">Shop Now</a>
+    </div>
+
+    <div class="container" id="products">
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search products by name, brand, or category..." onkeyup="handleSearch()">
+        </div>
+
+        <div class="filter-bar">
+            <select id="sort-select" onchange="handleSort()">
+                <option value="default">Sort by: Featured</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="name_asc">Name: A to Z</option>
+                <option value="name_desc">Name: Z to A</option>
+            </select>
+            <span id="category-filters"></span>
+        </div>
+
+        <h2 class="section-title">Featured Products</h2>
+        <p class="product-count" id="product-count"></p>
+        <div id="product-list" class="product-grid">
+            <p>Loading products...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="index.html">All Products</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">Sale</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Shipping</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Urbanshop. All rights reserved.</p>
+            <p>Made with ❤️ for great shopping</p>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let allProducts = [];
+        let currentCategory = '';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateWishlistCount();
+            setupHeader();
+            trackEvent('page_view');
+            showToast('Welcome to Urbanshop!', 'info');
+            allProducts = await fetchProducts();
+            await renderCategoryFilters();
+            renderProducts(allProducts, 'product-list');
+            updateProductCount();
+
+            const header = document.getElementById('main-header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 10) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
+            });
+        });
+
+        async function renderCategoryFilters() {
+            const cats = await fetchCategories();
+            const container = document.getElementById('category-filters');
+            if (!cats.length) return;
+            container.innerHTML = '<span class="category-badge active" onclick="filterCategory(\'\')">All</span>' +
+                cats.map(c => `<span class="category-badge" onclick="filterCategory('${c.name}')">${c.name}</span>`).join('');
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            let filtered = searchProducts(query, allProducts);
+            if (currentCategory) filtered = filterByCategory(currentCategory, filtered);
+            const sorted = applySort(filtered);
+            renderProducts(sorted, 'product-list');
+            updateProductCount();
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.getElementById('search-input').value = '';
+            let filtered = allProducts;
+            if (cat) filtered = filterByCategory(cat, filtered);
+            const sorted = applySort(filtered);
+            renderProducts(sorted, 'product-list');
+            updateProductCount();
+            document.querySelectorAll('.category-badge').forEach(b => b.classList.remove('active'));
+            if (!cat) document.querySelector('.category-badge').classList.add('active');
+        }
+
+        function applySort(products) {
+            const sort = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'default';
+            if (sort === 'price_asc') return sortProducts(products, 'price', 'asc');
+            if (sort === 'price_desc') return sortProducts(products, 'price', 'desc');
+            if (sort === 'name_asc') return sortProducts(products, 'title', 'asc');
+            if (sort === 'name_desc') return sortProducts(products, 'title', 'desc');
+            return products;
+        }
+
+        function handleSort() {
+            const query = document.getElementById('search-input').value.trim();
+            let filtered = searchProducts(query, allProducts);
+            if (currentCategory) filtered = filterByCategory(currentCategory, filtered);
+            const sorted = applySort(filtered);
+            renderProducts(sorted, 'product-list');
+            updateProductCount();
+        }
+
+        function updateProductCount() {
+            const container = document.getElementById('product-list');
+            const count = container.children.length;
+            document.getElementById('product-count').innerText = count + ' product(s) found';
+        }
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, duration);
+        }
+    </script>
+</body>
+</html>

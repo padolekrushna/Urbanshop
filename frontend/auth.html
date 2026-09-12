@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Urbanshop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header id="main-header">
+        <a href="index.html" class="logo">urban<span>shop</span></a>
+        <div class="nav-actions">
+            <a href="index.html" class="icon-btn">♡ <b id="wishlist-count">0</b></a>
+            <a href="admin.html" id="admin-link" class="admin-link" style="display: none;">Admin</a>
+            <a href="#" id="account-link">Account</a>
+        </div>
+    </header>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html">Shop</a>
+        <a href="#">Customer Service</a>
+    </nav>
+
+    <div class="container">
+        <div class="form-container" style="margin-top: 60px;">
+            <h1 id="form-title">Sign In</h1>
+            <p class="subtitle" id="form-subtitle">Welcome back! Sign in to your account</p>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-submit" id="submit-btn">Sign In</button>
+                <div style="margin-top: 12px; text-align: right;">
+                    <a href="#" id="forgot-password" style="font-size: 13px; color: var(--amz-link); font-weight: 500;">Forgot password?</a>
+                </div>
+                <div id="error-msg" class="error-msg"></div>
+                <div id="success-msg" class="success-msg"></div>
+            </form>
+
+            <p class="text-center mt-2" style="font-size: 14px; color: var(--amz-text-light);">
+                <span id="toggle-text">New to Urbanshop?</span>
+                <a href="#" id="toggle-mode" style="font-weight: 600; color: var(--amz-link);">Create your account</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul><li><a href="index.html">All Products</a></li><li><a href="#">New Arrivals</a></li><li><a href="#">Best Sellers</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul><li><a href="#">Help Center</a></li><li><a href="#">Returns</a></li><li><a href="#">Contact Us</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Blog</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Urbanshop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let isLogin = true;
+
+        document.getElementById('toggle-mode').addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            document.getElementById('form-title').innerText = isLogin ? 'Sign In' : 'Create Account';
+            document.getElementById('form-subtitle').innerText = isLogin ? 'Welcome back! Sign in to your account' : 'Join Urbanshop today and start shopping';
+            document.getElementById('submit-btn').innerText = isLogin ? 'Sign In' : 'Sign Up';
+            document.getElementById('toggle-text').innerText = isLogin ? 'New to Urbanshop?' : 'Already have an account?';
+            document.getElementById('toggle-mode').innerText = isLogin ? 'Create your account' : 'Sign in';
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'none';
+        });
+
+        document.getElementById('forgot-password').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            if (!email) { showToast('Please enter your email first.', 'error'); return; }
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+            if (error) showToast(error.message, 'error');
+            else showToast('Password reset email sent. Check your inbox.', 'success');
+        });
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!supabaseClient) { showToast('Supabase is not configured!', 'error'); return; }
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            const successMsg = document.getElementById('success-msg');
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            showToast('Please wait...', 'info');
+            let result;
+            try {
+                if (isLogin) result = await supabaseClient.auth.signInWithPassword({ email, password });
+                else result = await supabaseClient.auth.signUp({ email, password });
+            } catch (err) { showToast('An unexpected error occurred.', 'error'); return; }
+            if (result.error) showToast(result.error.message, 'error');
+            else {
+                if (!isLogin) showToast('Check your email for confirmation link.', 'success');
+                else { showToast('Signed in successfully!', 'success'); setTimeout(() => window.location.href = 'index.html', 800); }
+            }
+        });
+    </script>
+</body>
+</html>

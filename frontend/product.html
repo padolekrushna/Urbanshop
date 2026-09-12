@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product - Urbanshop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header id="main-header">
+        <a href="index.html" class="logo">urban<span>shop</span></a>
+        <div class="nav-actions">
+            <a href="#" class="icon-btn" onclick="window.location.href='index.html'; return false;">
+                ♡ <b id="wishlist-count">0</b>
+            </a>
+            <a href="admin.html" id="admin-link" style="display: none;">Admin</a>
+            <a href="auth.html" id="account-link">Account</a>
+        </div>
+    </header>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="#" onclick="filterCategory(''); return false;">Shop</a>
+        <a href="#">Categories</a>
+        <a href="#">Customer Service</a>
+    </nav>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Store</a>
+        <div class="product-detail" id="product-detail">
+            <div class="skeleton" style="height:450px;border-radius:var(--radius-lg);"></div>
+            <div>
+                <div class="skeleton" style="height:28px;width:70%;margin-bottom:12px;"></div>
+                <div class="skeleton" style="height:36px;width:40%;margin-bottom:16px;"></div>
+                <div class="skeleton" style="height:16px;width:60%;margin-bottom:20px;"></div>
+                <div class="skeleton" style="height:120px;width:100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col"><h4>Shop</h4><ul><li><a href="index.html">All Products</a></li><li><a href="#">New Arrivals</a></li><li><a href="#">Best Sellers</a></li></ul></div>
+            <div class="footer-col"><h4>Support</h4><ul><li><a href="#">Help Center</a></li><li><a href="#">Returns</a></li><li><a href="#">Contact Us</a></li></ul></div>
+            <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Blog</a></li></ul></div>
+            <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul></div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Urbanshop. All rights reserved.</p>
+            <p>Made with ❤️ for great shopping</p>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateWishlistCount();
+            setupHeader();
+            trackEvent('page_view');
+
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            if (!productId) { document.getElementById('product-detail').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Invalid product ID.</p><a href="index.html" class="btn-primary">Go to Store</a></div>'; return; }
+
+            const product = await fetchProductById(productId);
+            if (!product) { document.getElementById('product-detail').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><p>Product not found.</p><a href="index.html" class="btn-primary">Browse Products</a></div>'; return; }
+
+            trackEvent('product_view', product.id);
+
+            const imageUrl = getProductImageUrl(product, '600x400');
+            const isWishlisted = getWishlist().includes(product.id);
+
+            document.getElementById('product-detail').innerHTML = `
+                <div>
+                    <img src="${imageUrl}" alt="${product.title}" class="detail-image" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
+                </div>
+                <div>
+                    <div class="product-category">${product.category || 'Uncategorized'}</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">₹${product.price}</div>
+                    <div class="product-meta">
+                        <span>📍 ${product.location || 'N/A'}</span>
+                    </div>
+                    <div class="product-description">${product.description || 'No description available.'}</div>
+                    <div style="margin-top:16px;font-size:14px;color:var(--amz-text-light);">
+                        <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${product.category || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">${product.location || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="detail-label">Reseller Link</span><span class="detail-value">${product.reseller_link ? '<a href="' + product.reseller_link + '" target="_blank" rel="noopener" style="color:var(--amz-link);">Visit ↗</a>' : 'Not available'}</span></div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn-primary" onclick="buyProduct(${product.id})">Buy Now</button>
+                        <button class="btn-secondary" onclick="toggleWishlistBtn(this, ${product.id})">${isWishlisted ? '♥ Saved to Wishlist' : '♡ Save to Wishlist'}</button>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
