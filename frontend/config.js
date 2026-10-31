@@ -1,6 +1,6 @@
 // Update this with your Render backend URL after deployment
 const CONFIG = {
-    API_URL: "https://urbanshop-backend.onrender.com/api",
+    API_URL: "https://urbanshop-backend1.onrender.com/api",
     SUPABASE_URL: "https://bxagesejrodvhlmfiunj.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_VYPZoCGSUXBLmTl1jFVcYg_a3ERNCq6"
 };
